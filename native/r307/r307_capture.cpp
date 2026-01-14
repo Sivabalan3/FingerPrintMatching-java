@@ -1,64 +1,76 @@
-// ----r307_capture.cpp ----
-
 #include <iostream>
 #include <unistd.h>
-#include <fcntl.h>
-#include <termios.h>
 #include <vector>
-#include <cstring>
+#include <string>
+#include "r307_driver.h"
+#include "base64.h"
 
-// ---- MOCK ISO TEMPLATE (REPLACE WITH REAL ISO CONVERSION) ----
-std::string fakeIsoBase64() {
-    return "AAECAwQFBgcICQoLDA0ODw==";
-}
+using namespace std;
 
-// ---- SERIAL OPEN ----
-int openSerial(const char* dev) {
-    int fd = open(dev, O_RDWR | O_NOCTTY);
-    if (fd < 0) {
-        perror("open");
-        exit(1);
+// Wait for finger to be placed
+void waitFinger(R307& sensor, const string& msg) {
+    cout << msg << endl;
+    while (!sensor.readImage()) {
+        usleep(200000); // 200ms
     }
-
-    termios tty{};
-    tcgetattr(fd, &tty);
-
-    cfsetospeed(&tty, B57600);
-    cfsetispeed(&tty, B57600);
-
-    tty.c_cflag |= (CLOCAL | CREAD);
-    tty.c_cflag &= ~CSIZE;
-    tty.c_cflag |= CS8;
-
-    tcsetattr(fd, TCSANOW, &tty);
-    return fd;
+    usleep(500000); // small delay after finger capture
 }
 
 int main(int argc, char* argv[]) {
 
     if (argc < 2) {
-        std::cout << "Usage: r307_capture enroll|verify\n";
+        cerr << "Usage: ./r307_capture enroll|verify\n";
         return 1;
     }
 
-    std::string mode = argv[1];
-    int fd = openSerial("/dev/ttyUSB0");
+    string mode = argv[1];
 
-    std::cout << "Place your finger...\n";
-    sleep(1);
+    try {
+        R307 sensor("/dev/ttyUSB0"); // adjust if your port is different
 
-    // 👉 Here you do:
-    // - GenImg
-    // - Img2Tz
-    // - RegModel
-    // - GetChar
-    // - Convert to ISO 19794-2
+        if (mode == "enroll") {
+            // Step 1: Place first finger
+            waitFinger(sensor, "🟢 Place finger (1/2)");
+            sensor.image2Tz(1);
 
-    close(fd);
+            // Step 2: Place same finger again
+            waitFinger(sensor, "🟡 Place SAME finger (2/2)");
+            sensor.image2Tz(2);
 
-    // OUTPUT FOR JAVA
-    std::cout << "ISO_TEMPLATE_BASE64="
-              << fakeIsoBase64() << std::endl;
+            // Step 3: Create model
+            sensor.createModel();
+
+            // Step 4: Download template
+            auto tpl = sensor.downloadTemplate();
+            if (tpl.empty()) {
+                cerr << "❌ Template generation failed\n";
+                return 1;
+            }
+
+            // Step 5: Convert to Base64 and output
+            string b64 = base64_encode(tpl.data(), tpl.size());
+            cout << "ISO_TEMPLATE_BASE64=" << b64 << endl;
+
+            // Optional: store on sensor (ID=1)
+            sensor.storeModel(1);
+        }
+        else if (mode == "verify") {
+            waitFinger(sensor, "🔍 Place finger for verification");
+            sensor.image2Tz(1);
+
+            auto search_result = sensor.sendCommand(0x04, {0x01, 0x00, 0x00, 0x03, 0xE8}); // search 0-1000
+            if (search_result.size() > 13 && search_result[9] == 0x00) {
+                int matched_id = (search_result[10] << 8) | search_result[11];
+                cout << "✅ MATCH FOUND! Sensor ID: " << matched_id << endl;
+            } else {
+                cout << "❌ NO MATCH FOUND\n";
+            }
+        }
+    }
+    catch (const exception& e) {
+        cerr << "ERROR: " << e.what() << endl;
+        return 1;
+    }
 
     return 0;
 }

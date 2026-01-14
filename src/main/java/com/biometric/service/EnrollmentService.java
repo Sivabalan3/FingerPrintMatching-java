@@ -15,12 +15,9 @@ public class EnrollmentService {
     }
 
     public void enroll(String name, byte[] iso) throws Exception {
-
-        // Create entity
         FingerprintTemplateEntity e = new FingerprintTemplateEntity();
         e.setName(name);
         e.setTemplate(CryptoUtil.encrypt(iso)); // store encrypted ISO
-
         repo.save(e);
 
         System.out.println("Template saved for " + name);

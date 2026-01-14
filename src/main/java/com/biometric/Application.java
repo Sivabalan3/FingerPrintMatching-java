@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.biometric.service.EnrollmentService;
 import com.biometric.service.VerificationService;
-import com.machinezoo.sourceafis.FingerprintTemplate;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -43,8 +42,6 @@ public class Application implements CommandLineRunner {
 
             byte[] iso = captureFromR307("enroll");
             enroll.enroll(name, iso);
-
-            System.out.println("Template saved for " + name);
         }
 
         if (mode == 2) {
@@ -52,7 +49,7 @@ public class Application implements CommandLineRunner {
 
             String match = verify.verify(iso);
             if (match != null)
-                System.out.println("Matched filename and name is " + match);
+                System.out.println("Matched name: " + match);
             else
                 System.out.println("No match");
         }

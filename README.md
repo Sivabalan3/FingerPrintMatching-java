@@ -237,7 +237,7 @@ r307_capture created
 Test manually:
 
 ```bash
-./r307_capture
+./r307_capture enroll
 ```
 
 You should see:

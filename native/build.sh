@@ -1,13 +1,17 @@
 #!/bin/bash
 set -e
 
-# Go into the r307 folder relative to this script
+echo "🔧 Building R307 capture binary..."
+
+# Go into r307 folder
 cd r307
 
-# Compile the C++ program
-g++ r307_capture.cpp -o r307_capture
+g++ -std=c++17 \
+    r307_capture.cpp \
+    r307_driver.cpp \
+    base64.cpp \
+    -o r307_capture
 
-# Make binary executable
 chmod +x r307_capture
 
-echo "R307 capture binary built successfully"
+echo "✅ R307 capture binary built successfully"

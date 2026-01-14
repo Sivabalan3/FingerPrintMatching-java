@@ -11,7 +11,6 @@ import java.util.List;
 public class VerificationService {
 
     private final FingerprintRepository repo;
-    private static final double MATCH_THRESHOLD = 0.95; // example for similarity
 
     public VerificationService(FingerprintRepository repo) {
         this.repo = repo;
@@ -24,7 +23,7 @@ public class VerificationService {
         for (FingerprintTemplateEntity e : all) {
             byte[] storedIso = CryptoUtil.decrypt(e.getTemplate());
 
-            // simple equality check for demo (replace with your matcher)
+            // simple equality check (replace with proper matcher later)
             if (java.util.Arrays.equals(probeIso, storedIso)) {
                 return e.getName();
             }
