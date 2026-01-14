@@ -280,7 +280,7 @@ target/fingerprint-matcher.jar
 ## ▶️ STEP 8: RUN APPLICATION
 
 ```bash
-java -jar target/fingerprint-matcher.jar
+java -jar target/fingerprint-matcher-1.0.0.jar
 ```
 
 ---

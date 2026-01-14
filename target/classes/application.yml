@@ -1,6 +1,6 @@
 spring:
   data:
     mongodb:
-      host: 192.168.1.34
+      host: 192.168.1.38
       port: 27017
       database: biometric

@@ -1,39 +1,35 @@
 package com.biometric.service;
 
+import com.biometric.model.FingerprintTemplateEntity;
+import com.biometric.repository.FingerprintRepository;
+import com.biometric.util.CryptoUtil;
 import org.springframework.stereotype.Service;
-import com.machinezoo.sourceafis.FingerprintMatcher;
-import com.machinezoo.sourceafis.FingerprintTemplate;
-import java.util.Map;
+
+import java.util.List;
 
 @Service
 public class VerificationService {
 
-    private final TemplateCacheService cache;
-    private static final double MATCH_THRESHOLD = 40.0;
+    private final FingerprintRepository repo;
+    private static final double MATCH_THRESHOLD = 0.95; // example for similarity
 
-    public VerificationService(TemplateCacheService cache) {
-        this.cache = cache;
+    public VerificationService(FingerprintRepository repo) {
+        this.repo = repo;
     }
 
-    public String verify(byte[] probeIso) {
+    public String verify(byte[] probeIso) throws Exception {
 
-        FingerprintTemplate probe = new FingerprintTemplate(probeIso);
+        List<FingerprintTemplateEntity> all = repo.findAll();
 
-        // Construct matcher with probe template
-        FingerprintMatcher matcher = new FingerprintMatcher(probe);
+        for (FingerprintTemplateEntity e : all) {
+            byte[] storedIso = CryptoUtil.decrypt(e.getTemplate());
 
-        double bestScore = 0;
-        String bestName = null;
-
-        for (Map.Entry<String, FingerprintTemplate> entry : cache.all().entrySet()) {
-            double score = matcher.match(entry.getValue());
-            if (score > bestScore) {
-                bestScore = score;
-                bestName = entry.getKey();
+            // simple equality check for demo (replace with your matcher)
+            if (java.util.Arrays.equals(probeIso, storedIso)) {
+                return e.getName();
             }
         }
 
-        // compare score manually to threshold
-        return bestScore >= MATCH_THRESHOLD ? bestName : null;
+        return null; // no match
     }
 }
