@@ -1,0 +1,10 @@
+com/biometric/service/TemplateCacheService.class
+com/biometric/util/IsoTemplateUtil.class
+com/biometric/service/VerificationService.class
+com/biometric/config/SourceAfisConfig.class
+com/biometric/model/FingerprintTemplateEntity.class
+com/biometric/service/EnrollmentService.class
+com/biometric/repository/FingerprintRepository.class
+com/biometric/config/ThreadPoolConfig.class
+com/biometric/util/CryptoUtil.class
+com/biometric/Application.class

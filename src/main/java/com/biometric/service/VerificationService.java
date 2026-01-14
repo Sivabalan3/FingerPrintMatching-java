@@ -1,10 +1,15 @@
-// -----VerificationService.java----
+package com.biometric.service;
+
+import org.springframework.stereotype.Service;
+import com.machinezoo.sourceafis.FingerprintMatcher;
+import com.machinezoo.sourceafis.FingerprintTemplate;
+import java.util.Map;
+
 @Service
 public class VerificationService {
 
     private final TemplateCacheService cache;
-    private final FingerprintMatcher matcher =
-            new FingerprintMatcher();
+    private static final double MATCH_THRESHOLD = 40.0;
 
     public VerificationService(TemplateCacheService cache) {
         this.cache = cache;
@@ -12,19 +17,23 @@ public class VerificationService {
 
     public String verify(byte[] probeIso) {
 
-        FingerprintTemplate probe =
-                new FingerprintTemplate(probeIso);
+        FingerprintTemplate probe = new FingerprintTemplate(probeIso);
 
-        double best = 0;
+        // Construct matcher with probe template
+        FingerprintMatcher matcher = new FingerprintMatcher(probe);
+
+        double bestScore = 0;
         String bestName = null;
 
-        for (var e : cache.all().entrySet()) {
-            double score = matcher.match(probe, e.getValue());
-            if (score > best) {
-                best = score;
-                bestName = e.getKey();
+        for (Map.Entry<String, FingerprintTemplate> entry : cache.all().entrySet()) {
+            double score = matcher.match(entry.getValue());
+            if (score > bestScore) {
+                bestScore = score;
+                bestName = entry.getKey();
             }
         }
-        return best > 40 ? bestName : null;
+
+        // compare score manually to threshold
+        return bestScore >= MATCH_THRESHOLD ? bestName : null;
     }
 }

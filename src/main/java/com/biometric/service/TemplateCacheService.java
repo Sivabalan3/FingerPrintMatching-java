@@ -1,10 +1,18 @@
-// -----TemplateCacheService.java ---
+package com.biometric.service;
+
+import org.springframework.stereotype.Service;
+import com.biometric.repository.FingerprintRepository;
+import com.biometric.util.CryptoUtil;
+import com.machinezoo.sourceafis.FingerprintTemplate;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import jakarta.annotation.PostConstruct;
+
 @Service
 public class TemplateCacheService {
 
     private final FingerprintRepository repo;
-    private final Map<String, FingerprintTemplate> cache =
-            new ConcurrentHashMap<>();
+    private final Map<String, FingerprintTemplate> cache = new ConcurrentHashMap<>();
 
     public TemplateCacheService(FingerprintRepository repo) {
         this.repo = repo;
@@ -12,7 +20,7 @@ public class TemplateCacheService {
 
     @PostConstruct
     public void loadAll() throws Exception {
-        for (FingerprintTemplateEntity e : repo.findAll()) {
+        for (com.biometric.model.FingerprintTemplateEntity e : repo.findAll()) {
             byte[] iso = CryptoUtil.decrypt(e.getTemplate());
             cache.put(e.getName(), new FingerprintTemplate(iso));
         }

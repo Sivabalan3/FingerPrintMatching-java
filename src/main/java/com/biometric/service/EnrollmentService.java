@@ -1,4 +1,10 @@
-// ---EnrollmentService.java ----
+package com.biometric.service;
+
+import org.springframework.stereotype.Service;
+import com.biometric.repository.FingerprintRepository;
+import com.biometric.util.CryptoUtil;
+import com.machinezoo.sourceafis.FingerprintTemplate;
+
 @Service
 public class EnrollmentService {
 
@@ -15,7 +21,7 @@ public class EnrollmentService {
 
         FingerprintTemplate tpl = new FingerprintTemplate(iso);
 
-        FingerprintTemplateEntity e = new FingerprintTemplateEntity();
+        com.biometric.model.FingerprintTemplateEntity e = new com.biometric.model.FingerprintTemplateEntity();
         e.setName(name);
         e.setTemplate(CryptoUtil.encrypt(iso));
 
